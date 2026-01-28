@@ -1,0 +1,23 @@
+{
+  "name": "ecommerce-order-fulfillment-system",
+  "version": "1.0.0",
+  "description": "电商订单履约与库存管理系统",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "ecommerce",
+    "order",
+    "inventory",
+    "fulfillment"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "name": "iPhone 14 Pro",
+    "totalStock": 100,
+    "availableStock": 100,
+    "lockedStock": 0,
+    "deductedStock": 0
+  },
+  {
+    "id": "2",
+    "name": "AirPods Pro 2",
+    "totalStock": 200,
+    "availableStock": 200,
+    "lockedStock": 0,
+    "deductedStock": 0
+  },
+  {
+    "id": "3",
+    "name": "MacBook Pro 14\"",
+    "totalStock": 50,
+    "availableStock": 50,
+    "lockedStock": 0,
+    "deductedStock": 0
+  }
+]

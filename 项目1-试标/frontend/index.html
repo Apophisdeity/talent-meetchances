@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电商订单履约与库存管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* 主容器 */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 200px;
+            background-color: #34495e;
+            color: white;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: #2c3e50;
+        }
+
+        .nav-item.active {
+            background-color: #2c3e50;
+            border-left-color: #3498db;
+        }
+
+        /* 右侧内容区 */
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* 内容区域 */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        /* 库存看板 */
+        .inventory-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .inventory-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .inventory-card h3 {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .inventory-card .value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* 表格样式 */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* 状态标签 */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .status-paid {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .status-fulfilled {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .status-fulfill_failed {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        /* 日志列表 */
+        .logs-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .log-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .log-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .log-content {
+            font-size: 14px;
+        }
+
+        /* 消息提示 */
+        .message {
+            padding: 12px 20px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 10px 0;
+                display: flex;
+                overflow-x: auto;
+            }
+
+            .nav-item {
+                white-space: nowrap;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+
+            .nav-item.active {
+                border-left: none;
+                border-bottom-color: #3498db;
+            }
+
+            .content {
+                height: calc(100vh - 120px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <div class="header">
+        <h1>电商订单履约与库存管理系统</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="openOrderModal()">模拟下单</button>
+            <button class="btn btn-danger" onclick="resetInventory()">重置库存</button>
+            <button class="btn btn-secondary" onclick="checkInventory()">刷新库存</button>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <div class="nav-item active" onclick="switchSection('dashboard')">数据看板</div>
+            <div class="nav-item" onclick="switchSection('inventory')">库存管理</div>
+            <div class="nav-item" onclick="switchSection('orders')">订单管理</div>
+            <div class="nav-item" onclick="switchSection('logs')">操作日志</div>
+        </div>
+
+        <!-- 右侧内容区 -->
+        <div class="content">
+            <!-- 消息提示 -->
+            <div id="message" class="message"></div>
+
+            <!-- 数据看板 -->
+            <div id="dashboard" class="section active">
+                <div class="card">
+                    <h2>库存概览</h2>
+                    <div id="inventoryOverview" class="inventory-dashboard">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>订单状态统计</h2>
+                    <div id="orderStats" class="inventory-dashboard">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 库存管理 -->
+            <div id="inventory" class="section">
+                <div class="card">
+                    <h2>库存明细</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>商品ID</th>
+                                <th>商品名称</th>
+                                <th>总库存</th>
+                                <th>可用库存</th>
+                                <th>锁定库存</th>
+                                <th>已扣减库存</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 订单管理 -->
+            <div id="orders" class="section">
+                <div class="card">
+                    <h2>订单列表</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>商品</th>
+                                <th>数量</th>
+                                <th>用户</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 操作日志 -->
+            <div id="logs" class="section">
+                <div class="card">
+                    <h2>操作日志</h2>
+                    <div id="logsList" class="logs-list">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 下单模态框 -->
+    <div id="orderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 30px; border-radius: 8px; width: 400px; max-width: 90%;">
+            <h3 style="margin-bottom: 20px;">模拟下单</h3>
+            <div class="form-group">
+                <label>商品</label>
+                <select id="productSelect">
+                    <option value="1">iPhone 14 Pro (库存: 100)</option>
+                    <option value="2">AirPods Pro 2 (库存: 200)</option>
+                    <option value="3">MacBook Pro 14" (库存: 50)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>购买数量</label>
+                <input type="number" id="quantityInput" min="1" value="1">
+            </div>
+            <div class="form-group">
+                <label>用户ID</label>
+                <input type="text" id="userIdInput" value="user123">
+            </div>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="userNameInput" value="测试用户">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="submitOrder()">提交订单</button>
+                <button class="btn btn-secondary" onclick="closeOrderModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 支付模态框 -->
+    <div id="payModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 30px; border-radius: 8px; width: 400px; max-width: 90%;">
+            <h3 style="margin-bottom: 20px;">模拟支付</h3>
+            <p>订单号: <span id="payOrderId"></span></p>
+            <div style="margin: 20px 0;">
+                <label style="display: block; margin-bottom: 10px;">选择支付状态:</label>
+                <div style="display: flex; gap: 15px;">
+                    <label><input type="radio" name="payStatus" value="success" checked> 支付成功</label>
+                    <label><input type="radio" name="payStatus" value="failed"> 支付失败</label>
+                    <label><input type="radio" name="payStatus" value="timeout"> 超时未支付</label>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="submitPayment()">确认支付</button>
+                <button class="btn btn-secondary" onclick="closePayModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 履约模态框 -->
+    <div id="fulfillModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 30px; border-radius: 8px; width: 400px; max-width: 90%;">
+            <h3 style="margin-bottom: 20px;">订单履约</h3>
+            <p>订单号: <span id="fulfillOrderId"></span></p>
+            <div style="margin: 20px 0;">
+                <label style="display: block; margin-bottom: 10px;">选择履约状态:</label>
+                <div style="display: flex; gap: 15px;">
+                    <label><input type="radio" name="fulfillStatus" value="success" checked> 履约成功</label>
+                    <label><input type="radio" name="fulfillStatus" value="failed"> 履约失败</label>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="submitFulfillment()">确认履约</button>
+                <button class="btn btn-secondary" onclick="closeFulfillModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API基础URL
+        const API_BASE = 'http://localhost:3000/api';
+        let currentOrderId = '';
+
+        // 切换内容区域
+        function switchSection(sectionId) {
+            // 更新导航状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 更新内容区域
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+
+            // 刷新对应数据
+            if (sectionId === 'dashboard') {
+                loadDashboard();
+            } else if (sectionId === 'inventory') {
+                loadInventory();
+            } else if (sectionId === 'orders') {
+                loadOrders();
+            } else if (sectionId === 'logs') {
+                loadLogs();
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = message;
+            messageEl.className = `message ${type}`;
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                messageEl.className = 'message';
+            }, 3000);
+        }
+
+        // 加载数据看板
+        function loadDashboard() {
+            // 加载库存概览
+            fetch(`${API_BASE}/inventory`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const overviewEl = document.getElementById('inventoryOverview');
+                        overviewEl.innerHTML = '';
+                        
+                        data.data.forEach(product => {
+                            const card = document.createElement('div');
+                            card.className = 'inventory-card';
+                            card.innerHTML = `
+                                <h3>${product.name}</h3>
+                                <div class="value">${product.availableStock}</div>
+                                <small>可用库存</small>
+                            `;
+                            overviewEl.appendChild(card);
+                        });
+                    }
+                });
+
+            // 加载订单统计
+            fetch(`${API_BASE}/orders`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const statsEl = document.getElementById('orderStats');
+                        statsEl.innerHTML = '';
+
+                        const statusCounts = {
+                            pending: 0,
+                            paid: 0,
+                            fulfilled: 0,
+                            cancelled: 0
+                        };
+
+                        data.data.forEach(order => {
+                            if (statusCounts.hasOwnProperty(order.status)) {
+                                statusCounts[order.status]++;
+                            }
+                        });
+
+                        Object.entries(statusCounts).forEach(([status, count]) => {
+                            const statusNames = {
+                                pending: '待支付',
+                                paid: '已支付',
+                                fulfilled: '已履约',
+                                cancelled: '已取消'
+                            };
+
+                            const card = document.createElement('div');
+                            card.className = 'inventory-card';
+                            card.innerHTML = `
+                                <h3>${statusNames[status]}</h3>
+                                <div class="value">${count}</div>
+                                <small>订单数</small>
+                            `;
+                            statsEl.appendChild(card);
+                        });
+                    }
+                });
+        }
+
+        // 加载库存数据
+        function loadInventory() {
+            fetch(`${API_BASE}/inventory`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const tableBody = document.getElementById('inventoryTableBody');
+                        tableBody.innerHTML = '';
+
+                        data.data.forEach(product => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${product.id}</td>
+                                <td>${product.name}</td>
+                                <td>${product.totalStock}</td>
+                                <td>${product.availableStock}</td>
+                                <td>${product.lockedStock}</td>
+                                <td>${product.deductedStock}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                });
+        }
+
+        // 加载订单数据
+        function loadOrders() {
+            fetch(`${API_BASE}/orders`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const tableBody = document.getElementById('ordersTableBody');
+                        tableBody.innerHTML = '';
+
+                        data.data.forEach(order => {
+                            const statusNames = {
+                                pending: '待支付',
+                                paid: '已支付',
+                                fulfilled: '已履约',
+                                cancelled: '已取消',
+                                fulfill_failed: '履约失败'
+                            };
+
+                            const statusClasses = {
+                                pending: 'status-pending',
+                                paid: 'status-paid',
+                                fulfilled: 'status-fulfilled',
+                                cancelled: 'status-cancelled',
+                                fulfill_failed: 'status-fulfill_failed'
+                            };
+
+                            let actions = '';
+                            if (order.status === 'pending') {
+                                actions = `<button class="btn btn-primary" onclick="openPayModal('${order.id}')">模拟支付</button>`;
+                            } else if (order.status === 'paid') {
+                                actions = `<button class="btn btn-primary" onclick="openFulfillModal('${order.id}')">订单履约</button>`;
+                            }
+
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${order.id}</td>
+                                <td>${order.productName}</td>
+                                <td>${order.quantity}</td>
+                                <td>${order.userName} (${order.userId})</td>
+                                <td><span class="status-badge ${statusClasses[order.status]}">${statusNames[order.status]}</span></td>
+                                <td>${new Date(order.createTime).toLocaleString()}</td>
+                                <td>${actions}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                });
+        }
+
+        // 加载日志数据
+        function loadLogs() {
+            fetch(`${API_BASE}/logs`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const logsList = document.getElementById('logsList');
+                        logsList.innerHTML = '';
+
+                        data.data.reverse().forEach(log => {
+                            const logItem = document.createElement('div');
+                            logItem.className = 'log-item';
+                            logItem.innerHTML = `
+                                <div class="log-time">${new Date(log.timestamp).toLocaleString()}</div>
+                                <div class="log-content">${log.type}: ${JSON.stringify(log.details)}</div>
+                            `;
+                            logsList.appendChild(logItem);
+                        });
+                    }
+                });
+        }
+
+        // 打开下单模态框
+        function openOrderModal() {
+            document.getElementById('orderModal').style.display = 'block';
+        }
+
+        // 关闭下单模态框
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        // 提交订单
+        function submitOrder() {
+            const productId = document.getElementById('productSelect').value;
+            const quantity = parseInt(document.getElementById('quantityInput').value);
+            const userId = document.getElementById('userIdInput').value;
+            const userName = document.getElementById('userNameInput').value;
+
+            if (!productId || !quantity || !userId || !userName) {
+                showMessage('请填写完整订单信息', 'error');
+                return;
+            }
+
+            fetch(`${API_BASE}/orders/submit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId,
+                    quantity,
+                    userId,
+                    userName
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('订单提交成功', 'success');
+                    closeOrderModal();
+                    loadDashboard();
+                    loadInventory();
+                    loadOrders();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('网络错误，请稍后重试', 'error');
+                console.error('订单提交失败:', error);
+            });
+        }
+
+        // 打开支付模态框
+        function openPayModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('payOrderId').textContent = orderId;
+            document.getElementById('payModal').style.display = 'block';
+        }
+
+        // 关闭支付模态框
+        function closePayModal() {
+            document.getElementById('payModal').style.display = 'none';
+        }
+
+        // 提交支付
+        function submitPayment() {
+            const payStatus = document.querySelector('input[name="payStatus"]:checked').value;
+
+            fetch(`${API_BASE}/orders/pay`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    orderId: currentOrderId,
+                    payStatus
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    closePayModal();
+                    loadDashboard();
+                    loadInventory();
+                    loadOrders();
+                    loadLogs();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('网络错误，请稍后重试', 'error');
+                console.error('支付失败:', error);
+            });
+        }
+
+        // 打开履约模态框
+        function openFulfillModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('fulfillOrderId').textContent = orderId;
+            document.getElementById('fulfillModal').style.display = 'block';
+        }
+
+        // 关闭履约模态框
+        function closeFulfillModal() {
+            document.getElementById('fulfillModal').style.display = 'none';
+        }
+
+        // 提交履约
+        function submitFulfillment() {
+            const fulfillStatus = document.querySelector('input[name="fulfillStatus"]:checked').value;
+
+            fetch(`${API_BASE}/orders/fulfill`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    orderId: currentOrderId,
+                    fulfillStatus
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    closeFulfillModal();
+                    loadDashboard();
+                    loadOrders();
+                    loadLogs();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('网络错误，请稍后重试', 'error');
+                console.error('履约失败:', error);
+            });
+        }
+
+        // 重置库存
+        function resetInventory() {
+            if (confirm('确定要重置库存吗？这将清空所有订单数据。')) {
+                fetch(`${API_BASE}/inventory/reset`, {
+                    method: 'POST'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('库存重置成功', 'success');
+                        loadDashboard();
+                        loadInventory();
+                        loadOrders();
+                        loadLogs();
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage('网络错误，请稍后重试', 'error');
+                    console.error('重置库存失败:', error);
+                });
+            }
+        }
+
+        // 检查库存
+        function checkInventory() {
+            loadInventory();
+            loadDashboard();
+            showMessage('库存数据已更新', 'success');
+        }
+
+        // 初始化页面
+        function init() {
+            loadDashboard();
+            loadInventory();
+            loadOrders();
+            loadLogs();
+        }
+
+        // 页面加载完成后初始化
+        window.onload = init;
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modals = ['orderModal', 'payModal', 'fulfillModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
