@@ -1,0 +1,48 @@
+[
+  {
+    "id": "1769590861003",
+    "timestamp": "2026-01-28T09:01:01.003Z",
+    "type": "订单提交",
+    "details": {
+      "orderId": "ORD1769590861002424",
+      "productId": "1",
+      "quantity": 1,
+      "userId": "user123"
+    }
+  },
+  {
+    "id": "1769590872329",
+    "timestamp": "2026-01-28T09:01:12.329Z",
+    "type": "订单支付",
+    "details": {
+      "orderId": "ORD1769590861002424",
+      "status": "failed"
+    }
+  },
+  {
+    "id": "1769590883216",
+    "timestamp": "2026-01-28T09:01:23.216Z",
+    "type": "订单提交",
+    "details": {
+      "orderId": "ORD1769590883216194",
+      "productId": "1",
+      "quantity": 1,
+      "userId": "user123"
+    }
+  },
+  {
+    "id": "1769590887420",
+    "timestamp": "2026-01-28T09:01:27.420Z",
+    "type": "订单支付",
+    "details": {
+      "orderId": "ORD1769590883216194",
+      "status": "success"
+    }
+  },
+  {
+    "id": "1769590913643",
+    "timestamp": "2026-01-28T09:01:53.643Z",
+    "type": "库存重置",
+    "details": {}
+  }
+]
